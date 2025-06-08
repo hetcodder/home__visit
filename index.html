@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Home Visit Log</title>
+  <style>
+    table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+      padding: 5px;
+    }
+    button {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <img src="logo.jpeg" alt="Unique Pathology Laboratory Logo" style="width: 300px; display: block; margin: 0 auto;">
+  <h1>Home Visit Form</h1>
+
+  <form id="visitForm">
+    <label>Date:</label>
+    <input type="date" name="date" required><br>
+
+    <label>Time:</label>
+    <input type="time" name="time" required><br>
+
+    <label>Name:</label>
+    <input type="text" name="name" required><br>
+
+    <label>Mobile:</label>
+    <input type="tel" name="mobile" pattern="[0-9]{10}" required><br>
+
+    <label>Address:</label>
+    <textarea name="address" required></textarea><br>
+
+    <label>Type of Test:</label>
+    <select name="test_type" required>
+      <option value="">Select a test</option>
+      <option value="Blood Test">Blood Test</option>
+      <option value="Urine Test">Urine Test</option>
+      <option value="X-Ray">X-Ray</option>
+      <option value="ECG">ECG</option>
+      <option value="Other">Other</option>
+    </select><br><br>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Visit Records</h2>
+  <table id="recordsTable">
+    <tr>
+      <th>Date</th><th>Time</th><th>Name</th><th>Mobile</th><th>Address</th><th>Test</th>
+    </tr>
+  </table>
+
+  <!-- ✅ Delete All Records Button -->
+  <button onclick="clearAllData()">Delete All Records</button>
+
+  <script>
+    const form = document.getElementById('visitForm');
+    const table = document.getElementById('recordsTable');
+
+    // Load and display visits from localStorage
+    window.onload = function () {
+      const visits = JSON.parse(localStorage.getItem('visits')) || [];
+      const now = new Date();
+
+      const validVisits = visits.filter(v => {
+        const visitDate = new Date(v.date);
+        const daysOld = (now - visitDate) / (1000 * 60 * 60 * 24);
+        return daysOld <= 7;
+      });
+
+      localStorage.setItem('visits', JSON.stringify(validVisits));
+      validVisits.forEach(addRow);
+    };
+
+    // Handle form submission
+    form.onsubmit = function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const visit = {
+        date: formData.get('date'),
+        time: formData.get('time'),
+        name: formData.get('name'),
+        mobile: formData.get('mobile'),
+        address: formData.get('address'),
+        test_type: formData.get('test_type')
+      };
+
+      const visits = JSON.parse(localStorage.getItem('visits')) || [];
+      visits.push(visit);
+      localStorage.setItem('visits', JSON.stringify(visits));
+      addRow(visit);
+      form.reset();
+    };
+
+    // Add a row to the table
+    function addRow(visit) {
+      const row = table.insertRow(-1);
+      row.innerHTML = `
+        <td>${visit.date}</td>
+        <td>${visit.time}</td>
+        <td>${visit.name}</td>
+        <td>${visit.mobile}</td>
+        <td>${visit.address}</td>
+        <td>${visit.test_type}</td>
+      `;
+    }
+
+    // ✅ Clear all data from localStorage and table
+    function clearAllData() {
+      if (confirm("Are you sure you want to delete all records?")) {
+        localStorage.removeItem('visits');
+        location.reload(); // Refresh to clear table
+      }
+    }
+  </script>
+</body>
+</html>
